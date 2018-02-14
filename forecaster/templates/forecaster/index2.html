@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Forecasts</title>
+</head>
+<body>
+{% if upd_list %}
+    <ul>
+    {% for upd in upd_list %}
+       <li><a href="{% url 'forecaster:detail' upd.product_id  upd.channel_id %}">{{ upd.product_id }}-{{ upd.channel_id }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No forecasts are available.</p>
+{% endif %}
+</body>
+</html>

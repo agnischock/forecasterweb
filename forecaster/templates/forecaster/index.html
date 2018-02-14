@@ -1,0 +1,16 @@
+{% extends 'adminlte/base.html' %}
+
+{% block title %}Forecaster{% endblock %}
+{% block content %}
+
+    {% if upd_list %}
+    <ul>
+    {% for upd in upd_list %}
+       <li><a href="{% url 'forecaster:detail' upd.product_id  upd.channel_id %}">{{ upd.product_id }}-{{ upd.channel_id }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No forecasts are available.</p>
+{% endif %}
+{% endblock %}
+

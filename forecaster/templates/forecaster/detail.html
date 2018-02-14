@@ -1,0 +1,12 @@
+{% extends 'adminlte/base.html' %}
+
+{% block title %}Forecaster - Details{% endblock %}
+{% block content %}
+<h1>Forecast da UPD {{ upd }}</h1>
+    <!--{% for forecast in forecast_list %}-->
+       <!--<li>{{forecast}}</li>-->
+    <!--{% endfor %}-->
+    <div id="fig_container">
+       {{ div_figure|safe }}
+    </div>
+{% endblock %}

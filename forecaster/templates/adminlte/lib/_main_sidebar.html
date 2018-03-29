@@ -2,13 +2,13 @@
 
 {% block nav_links %}
     <li>
-        <a href="/some/url">
-            <i class="fa fa-dashboard"></i> <span>Example Project</span>
+        <a href="{% url 'forecaster:index' %}">
+            <i class="fa fa-bars"></i> <span>UPDs</span>
         </a>
     </li>
     <li>
-        <a href="/some/url">
-            <i class="fa fa-user"></i> <span>Users</span>
+        <a href="{% url 'forecaster:parametrization' %}">
+            <i class="fa fa-sliders"></i> <span>Parametrizar modelos</span>
         </a>
     </li>
 {% endblock nav_links %}

@@ -1,0 +1,33 @@
+{% extends 'adminlte/base.html' %}
+
+{% block title %}Forecaster - Run forecast{% endblock %}
+{% block content %}
+
+    <form action="{% url 'forecaster:parametrization' %}" method="post">
+    {% csrf_token %}
+        <fieldset>
+            <legend>Parâmetros</legend>
+        <!--
+            Parâmetros
+                Suavização dos dados
+                Amortecimento
+                Remover Outliers
+                Tendência
+                Sazonalidade -->
+            <div>
+                <input type="checkbox" name="parametro" id="suav" value="suav" />
+                <label for="suav">Suavização</label><br />
+                <input type="checkbox" name="parametro" id="amort" value="amort" />
+                <label for="amort">Amortecimento</label><br />
+                <input type="checkbox" name="parametro" id="rmoutlier" value="rmoutlier" />
+                <label for="rmoutlier">Remover Outliers</label><br />
+                <input type="checkbox" name="parametro" id="trend" value="trend" />
+                <label for="trend">Tendência</label><br />
+                <input type="checkbox" name="parametro" id="season" value="season" />
+                <label for="season">Sazonalidade</label><br />
+            </div>
+            <input type="submit" value="Executar" />
+        </fieldset>
+    </form>
+
+{% endblock %}

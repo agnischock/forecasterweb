@@ -6,78 +6,6 @@ from django.db import models
 from django.utils import timezone
 
 
-class Upd(models.Model):
-    # product_id | integer | nÒo nulo
-    # channel_id | integer | nÒ nulo
-    # manual | boolean |
-    # upper_limit | numeric(15, 2) |
-    # lower_limit | numeric(15, 2) |
-    # forecast | boolean |
-    # cv | numeric |
-    # incidence_rate
-    product_id = models.IntegerField(null=False)
-    channel_id = models.IntegerField(null=False)
-    manual = models.BooleanField()
-    upper_limit = models.FloatField()
-    lower_limit = models.FloatField()
-    forecast = models.BooleanField()
-    cv = models.FloatField()
-    incidence_rate = models.FloatField()
-
-class UpdDetails(models.Model):
-    # id | integer | nÒo
-    # product_id | integer | nÒo
-    # channel_id | integer | nÒo
-    # date | date | nÒo
-    # quantity | numeric(10, 3) | nÒo
-    # outlier | boolean | nÒo
-    # manual
-
-    product_id = models.IntegerField(null=False)
-    channel_id = models.IntegerField(null=False)
-    date = models.DateTimeField('forecast date')
-    quantity = models.IntegerField(default=0)
-    outlier = models.BooleanField()
-    manual = models.BooleanField()
-
-# class Forecast(models.Model):
-#     def __str__(self):
-#         # Here it would be interesting to get the math model name, but it would be needed to access the math_models table
-#         forecast_name = str(self.product_id) + '-' + str(self.channel_id) + '-' + str(self.math_model_id)
-#         return forecast_name
-#
-#     def was_published_recently(self):
-#         return self.date >= timezone.now() - datetime.timedelta(days=365)
-#
-#     def forecast_identifier():
-#         forecast_id = self.product_id + '-' + self.channel_id + '-' + self.math_model_id
-#         return forecast_id
-#
-#     math_model_id = models.IntegerField(null=False)
-#     product_id = models.IntegerField(null=False)
-#     channel_id = models.IntegerField(null=False)
-#     mse = models.FloatField(null=True)
-#     utheil = models.FloatField(null=True)
-#     bias = models.FloatField(null=True)
-#     date = models.DateTimeField('date published')
-#     version = models.IntegerField()
-#     status = models.IntegerField()
-#     alpha = models.FloatField(null=True)
-#     beta = models.FloatField(null=True)
-#     gamma = models.FloatField(null=True)
-#     r_squared = models.FloatField(null=False, default=0)
-#
-# class ForecastDetails(models.Model):
-#     class Meta:
-#         # managed = False
-#         db_table = 'forecasts_details'
-#     def __str__(self):
-#         return self.forecast_id
-#
-#     forecast_id = models.ForeignKey(Forecast, on_delete=models.CASCADE)
-#     date = models.DateTimeField('forecast date')
-#     quantity = models.IntegerField(default=0)
-
 class Forecasts(models.Model):
     math_model_id = models.IntegerField()
     product_id = models.IntegerField()
@@ -106,3 +34,53 @@ class ForecastsDetails(models.Model):
     class Meta:
         managed = False
         db_table = 'forecasts_details'
+
+
+
+class Upds(models.Model):
+    product_id = models.IntegerField(primary_key=True)
+    channel_id = models.IntegerField()
+    manual = models.NullBooleanField()
+    upper_limit = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
+    lower_limit = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
+    forecast = models.NullBooleanField()
+    cv = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+    incidence_rate = models.DecimalField(max_digits=65535, decimal_places=65535, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'upds'
+        unique_together = (('product_id', 'channel_id'),)
+
+    def __str__(self):
+        return str(self.product_id) + '-' + str(self.channel_id)
+
+
+class UpdsDetails(models.Model):
+    product = models.ForeignKey(Upds, models.DO_NOTHING)
+    channel_id = models.IntegerField()
+    date = models.DateField()
+    quantity = models.DecimalField(max_digits=10, decimal_places=3)
+    outlier = models.BooleanField()
+    manual = models.BooleanField()
+
+    class Meta:
+        managed = False
+        db_table = 'upds_details'
+
+    def __str__(self):
+        return self.product + self.channel_id
+
+class MathModels(models.Model):
+
+    def __str__(self):
+        return self.description
+
+    class Meta:
+        managed = False
+        db_table = 'math_models'
+
+    id = models.IntegerField(primary_key=True)
+    description = models.TextField()
+    manual = models.BooleanField()
+

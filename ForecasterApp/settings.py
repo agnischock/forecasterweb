@@ -25,7 +25,7 @@ SECRET_KEY = '3gv37!*@mypviqkuhd&q$7kv+h0at_$_ywe&&1+3_@3vyvg++!'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
     'polls.apps.PollsConfig',
 
 
@@ -90,9 +91,18 @@ DATABASES = {
         'PASSWORD': 'postgres',
         'HOST': '127.0.0.1',
         'PORT': '5432',
+    },
+    'colplan': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'harmandb',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres',
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
     }
 }
 
+DATABASE_ROUTERS = ('forecaster.dbrouters.ColplanRouter',)
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators

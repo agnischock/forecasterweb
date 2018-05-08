@@ -6,7 +6,9 @@
     <form action="{% url 'forecaster:parametrization' %}" method="post">
     {% csrf_token %}
         <fieldset>
-            <legend>Parâmetros</legend>
+            <div class="box box-primary">
+                <div class="box-header">
+                <legend>Parâmetros</legend>
         <!--
             Parâmetros
                 Suavização dos dados
@@ -14,18 +16,64 @@
                 Remover Outliers
                 Tendência
                 Sazonalidade -->
-            <div>
-                <input type="checkbox" name="parametro" id="suav" value="suav" />
-                <label for="suav">Suavização</label><br />
-                <input type="checkbox" name="parametro" id="amort" value="amort" />
-                <label for="amort">Amortecimento</label><br />
-                <input type="checkbox" name="parametro" id="rmoutlier" value="rmoutlier" />
-                <label for="rmoutlier">Remover Outliers</label><br />
-                <input type="checkbox" name="parametro" id="trend" value="trend" />
-                <label for="trend">Tendência</label><br />
-                <input type="checkbox" name="parametro" id="season" value="season" />
-                <label for="season">Sazonalidade</label><br />
+
+
+                <div>
+                    <label>Pré tratamento dos dados</label><br />
+                    <input type="checkbox" name="parametro" id="suav" value="suav" />
+                    <label for="suav">Suavização</label><br />
+                    <input type="checkbox" name="parametro" id="rmoutlier" value="rmoutlier" />
+                    <label for="rmoutlier">Remover Outliers</label><br />
+
+                    <br /><label>Modelos que devem ser executados</label><br />
+                    <input type="checkbox" name="parametro" id="trend" value="trend" />
+                    <label for="trend">Modelos com tendência</label><br />
+                    <input type="checkbox" name="parametro" id="season" value="season" />
+                    <label for="season">Modelos com sazonalidade</label><br />
+
+                    <br /><label>Pós tratamento dos dados</label><br />
+                    <input type="checkbox" name="parametro" id="amort" value="amort" />
+                    <label for="amort">Amortecimento</label><br />
+                    <input type="checkbox" name="parametro" id="reseason" value="reseason" />
+                    <label for="reseason">Ressazonalizar</label><br />
+                </div>
+
+
+
+                <div class="form-group">
+                    <br/><label>Horizonte de inicialização</label>
+                    <select class="form-control" name="time_series_size_years">
+                        <option value="2">24 meses</option>
+                        <option value="3">36 meses</option>
+                        <option value="4">48 meses</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Horizonte de forecast</label>
+                    <select class="form-control" name="horizon">
+                        <option value="1">1 mês</option>
+                        <option value="2">2 meses</option>
+                        <option value="3">3 meses</option>
+                        <option value="4">4 meses</option>
+                        <option value="5">5 meses</option>
+                        <option value="6">6 meses</option>
+                        <option value="7">7 meses</option>
+                        <option value="8">8 meses</option>
+                        <option value="9">9 meses</option>
+                        <option value="10">10 meses</option>
+                        <option value="11">11 meses</option>
+                        <option selected value="12">12 meses</option>
+                        <option value="13">13 meses</option>
+                        <option value="14">14 meses</option>
+                        <option value="15">15 meses</option>
+                        <option value="16">16 meses</option>
+                        <option value="17">17 meses</option>
+                        <option value="18">18 meses</option>
+                    </select>
+                </div>
             </div>
+
             <input type="submit" value="Executar" />
         </fieldset>
     </form>

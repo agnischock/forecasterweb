@@ -3,6 +3,36 @@
 {% block title %}Forecaster{% endblock %}
 {% block content %}
 
+    <form method="post" id="productForm" load-branch-url="{% url 'forecaster:load_product_branch' %}" novalidate>
+    {% csrf_token %}
+        <table>
+            {{ form.as_table }}
+        </table>
+
+    </form>
+    <form method="post" id="productForm2" load-branch-url="{% url 'forecaster:load_product_branch' %}" novalidate>
+    {% csrf_token %}
+
+    </form>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script>
+        $("#id_branch_item_level_1").change(function () {
+            var url = $("#productForm").attr("load-branch-url");
+            var productId = $(this).val();
+            console.log(productId)
+            $.ajax({
+            url: url,
+            data: {
+                'product_id': productId
+            },
+            success: function (data) {
+                $("#id_branch_item_level_2").html(data);
+            }
+            });
+        });
+    </script>
+
     {% if upd_list %}
     <ul>
     {% for upd in upd_list %}

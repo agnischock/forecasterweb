@@ -3,10 +3,124 @@
 {% block title %}Forecaster - Details{% endblock %}
 {% block content %}
 <h1>Forecast da UPD {{ upd }}</h1>
-    <!--{% for forecast in forecast_list %}-->
-       <!--<li>{{forecast}}</li>-->
-    <!--{% endfor %}-->
+    {% for forecast in forecast_list %}
+       <li>{{forecast}}</li>
+    {% endfor %}
     <div id="fig_container">
        {{ div_figure|safe }}
     </div>
+<div> Modelo escolhido {{ min_theil }}</div>
+<div>UPD id {{ upd }}</div>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript" >
+        google.charts.load('current', {packages: ['corechart', 'line']});
+        google.charts.setOnLoadCallback(drawChart);
+
+        function drawChart() {
+            console.log('Bom dia')
+            console.log("gchartsdetail/" + "{{ upd|safe}}")
+            var jsonData = $.ajax({
+              url: "/forecaster/gchartsdetail/" + "{{ upd|safe}}",
+              dataType: "json",
+              async: false
+              }).responseText;
+
+            var data = new google.visualization.DataTable();
+
+            var parsed = JSON.parse(jsonData);
+
+            //Get a list of dates
+            var dates = []
+            for (var model in parsed){
+                var timeseries = parsed[model]
+                for (var point in timeseries){
+                    var date = point;
+                    if (!(date in dates)){
+                        dates.push(date);
+                    }
+                }
+            }
+            dates = dates.sort();
+            console.log(dates);
+
+            data.addColumn('date', 'Data');
+
+            //Get a list of models
+            var models = [];
+            for (var model in parsed){
+                if (!(model in models)){
+                    models.push(model);
+                }
+            }
+            models = models.sort();
+            console.log(models);
+
+            for (var model in models){
+                data.addColumn('number', models[model]);
+            }
+
+            //Iterate through dates and models, getting every point for that date and model
+            //If there is no point for a given date or models, put a '__' instead
+            for (var date in dates){
+                var datestring = dates[date]
+                var parts = datestring.split('-');
+                // Please pay attention to the month (parts[1]); JavaScript counts months from 0:
+                // January - 0, February - 1, etc.
+                var mydate = new Date(parts[0], parts[1] - 1, parts[2]);
+                var point = [mydate]
+                //console.log(point)
+                for (var model in models){
+                    //console.log('oi')
+
+                    var thisModel = parsed[models[model]]
+                    console.log(thisModel)
+                    console.log()
+
+                    if (thisModel.hasOwnProperty(datestring)){
+                        //console.log(thisModel[datestring]);
+                        point.push(thisModel[datestring]);
+                    }else{
+                        point.push(null);
+                    }
+                }
+                console.log(point)
+                data.addRow(point);
+            }
+
+
+
+            console.log(data);
+            var options = {
+              title: 'Forecasts',
+              legend: { position: 'right' }
+            };
+
+            var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+            console.log(chart);
+            chart.draw(data, options);
+        }
+    </script>
+
+
+    <!--<div id="chart_div" style="width: 900px; height: 500px"></div>-->
+    <div id="chart_div" style="height: 500px"></div>
+
+
+    <!--<div class="pagination">-->
+    <!--<span class="step-links">-->
+        <!--{% if upds.has_previous %}-->
+            <!--<a href="?page=1">&laquo; first</a>-->
+            <!--<a href="?page={{ upds.previous_page_number }}">previous</a>-->
+        <!--{% endif %}-->
+
+        <!--<span class="current">-->
+            <!--UPD {{ upds.number }} of {{ upds.paginator.num_pages }}.-->
+        <!--</span>-->
+
+        <!--{% if upds.has_next %}-->
+            <!--<a href="?page={{ upds.next_page_number }}">next</a>-->
+            <!--<a href="?page={{ upds.paginator.num_pages }}">last &raquo;</a>-->
+        <!--{% endif %}-->
+    <!--</span>-->
+    <!--</div>-->
 {% endblock %}

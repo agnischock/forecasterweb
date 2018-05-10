@@ -2,16 +2,17 @@ from django import forms
 from django.db import connections
 
 
-def sql_branch():
-    query = "select id, description from products where parent_id is null;"
+def sql_branch(identifier):
+    query = "select id, description from %s where parent_id is null;"
+    query = query % identifier
     # query.format('products')
     print(query)
     return query
 
 
-def load_branch():
+def load_branch(identifier):
     with connections['colplan'].cursor() as cursor:
-        query = sql_branch()
+        query = sql_branch(identifier)
         cursor.execute(query)
 
         branch_items = cursor.fetchall()
@@ -22,15 +23,26 @@ def load_branch():
 
 class BranchForm(forms.Form):
     # branch_item = forms.ChoiceField(choices = [(1,'oi'), (2,'ola'), (3,'maravilha')])
-    choices = load_branch()
-    branch_item_level_1 = forms.ChoiceField(choices = choices)
-    branch_item_level_2 = forms.ChoiceField(choices=[])
-    branch_item_level_3 = forms.ChoiceField(choices=[])
-    branch_item_level_4 = forms.ChoiceField(choices=[])
-    identifier = 'products'
 
-    def __init__(self, *args, **kwargs):
+    # branch_item_level_1 = forms.ChoiceField(choices = [(1,'------')]+choices)
+    # branch_item_level_1 = forms.ChoiceField(choices = [])
+    # branch_item_level_2 = forms.ChoiceField(choices=[])
+    # branch_item_level_3 = forms.ChoiceField(choices=[])
+    # branch_item_level_4 = forms.ChoiceField(choices=[])
+    identifier = ''
+
+    def __init__(self, identifier='products', *args, **kwargs):
+        self.identifier = identifier
+        self.branch_items = load_branch(self.identifier)
+
         super().__init__(*args, **kwargs)
+        self.fields[self.identifier+'_branch_item_level_1'] = forms.ChoiceField(choices=[])
+        self.fields[self.identifier+'_branch_item_level_1'].choices = [("",'------')] + self.branch_items
+        self.fields[self.identifier + '_branch_item_level_2'] = forms.ChoiceField(choices=[])
+        self.fields[self.identifier + '_branch_item_level_3'] = forms.ChoiceField(choices=[])
+        self.fields[self.identifier + '_branch_item_level_4'] = forms.ChoiceField(choices=[])
+        # self.identifier = 'teste'
+
         print(self.identifier)
-        self.branch_items = load_branch()
+
 

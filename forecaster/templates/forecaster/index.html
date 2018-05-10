@@ -2,22 +2,61 @@
 
 {% block title %}Forecaster{% endblock %}
 {% block content %}
+    <div class="row">
+        <div class="col-md-6">
 
-    <form method="post" id="productForm" load-branch-url="{% url 'forecaster:load_product_branch' %}" novalidate>
-    {% csrf_token %}
-        <table>
-            {{ form.as_table }}
-        </table>
+            <div class="box box-primary">
 
-    </form>
-    <form method="post" id="productForm2" load-branch-url="{% url 'forecaster:load_product_branch' %}" novalidate>
-    {% csrf_token %}
+                <div class="box-header">
+                    <legend>Produtos</legend>
+                </div>
 
-    </form>
+                <div class="box-body">
+                    <form method="post" id="productForm" load-branch-url="{% url 'forecaster:load_product_branch' %}" novalidate>
+                    {% csrf_token %}
+                        <table>
+                            {{ form_products.as_table }}
+                        </table>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+        <div class="col-md-6">
+
+            <div class="box box-primary">
+
+                <div class="box-header">
+                    <legend>Canais</legend>
+                </div>
+
+                <div class="box-body">
+                    <form method="post" id="channelForm" load-branch-url="{% url 'forecaster:load_channel_branch' %}" novalidate>
+                    {% csrf_token %}
+                        <table>
+                            {{ form_channels.as_table }}
+                        </table>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
 
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script>
-        $("#id_branch_item_level_1").change(function () {
+
+        function removeOptions(selectbox)
+        {
+            var i;
+            for(i = selectbox.options.length - 1 ; i >= 0 ; i--)
+            {
+                selectbox.remove(i);
+            }
+        }
+
+        $("#id_products_branch_item_level_1").change(function () {
+
             var url = $("#productForm").attr("load-branch-url");
             var productId = $(this).val();
             console.log(productId)
@@ -27,20 +66,70 @@
                 'product_id': productId
             },
             success: function (data) {
-                $("#id_branch_item_level_2").html(data);
+                $("#id_products_branch_item_level_2").html(data);
+                var product_selection_level_3 =  document.getElementById("id_products_branch_item_level_3");
+                removeOptions(product_selection_level_3);
+            }
+            });
+        });
+        $("#id_products_branch_item_level_2").change(function () {
+            var url = $("#productForm").attr("load-branch-url");
+            var productId = $(this).val();
+            console.log(productId)
+            $.ajax({
+            url: url,
+            data: {
+                'product_id': productId
+            },
+            success: function (data) {
+                $("#id_products_branch_item_level_3").html(data);
+            }
+            });
+        });
+
+
+        $("#id_channels_branch_item_level_1").change(function () {
+            var url = $("#channelForm").attr("load-branch-url");
+            var channelId = $(this).val();
+            console.log(channelId)
+            $.ajax({
+            url: url,
+            data: {
+                'channel_id': channelId
+            },
+            success: function (data) {
+                $("#id_channels_branch_item_level_2").html(data);
+                var channel_selection_level_3 =  document.getElementById("id_channels_branch_item_level_3");
+                removeOptions(channel_selection_level_3);
+            }
+            });
+        });
+        $("#id_channels_branch_item_level_2").change(function () {
+            var url = $("#channelForm").attr("load-branch-url");
+            var channelId = $(this).val();
+            console.log(channelId)
+            $.ajax({
+            url: url,
+            data: {
+                'channel_id': channelId
+            },
+            success: function (data) {
+                $("#id_channels_branch_item_level_3").html(data);
             }
             });
         });
     </script>
+    <div>
+        {% if upd_list %}
+            <ul>
+                {% for upd in upd_list %}
+                   <li><a href="{% url 'forecaster:detail' upd.product_id  upd.channel_id %}">{{ upd.product_id }}-{{ upd.channel_id }}</a></li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No forecasts are available.</p>
+        {% endif %}
 
-    {% if upd_list %}
-    <ul>
-    {% for upd in upd_list %}
-       <li><a href="{% url 'forecaster:detail' upd.product_id  upd.channel_id %}">{{ upd.product_id }}-{{ upd.channel_id }}</a></li>
-    {% endfor %}
-    </ul>
-{% else %}
-    <p>No forecasts are available.</p>
-{% endif %}
+    </div>
 {% endblock %}
 

@@ -33,9 +33,10 @@ def index(request):
     # forecast_list = Forecast.objects.order_by('product_id','channel_id')[:5]
     # template = loader.get_template('polls/index.html')
     upd_list = Forecasts.objects.all().order_by('product_id', 'channel_id').distinct('product_id', 'channel_id')
-    form = BranchForm()
-    print(form.branch_items)
-    context = {'upd_list': upd_list, 'form':form, }
+    form_products = BranchForm(identifier='products')
+    form_channels = BranchForm(identifier='channels')
+    print(form_products.branch_items)
+    context = {'upd_list': upd_list, 'form_products':form_products, "form_channels":form_channels }
     # return HttpResponse(template.render(context, request))
     return render(request, 'forecaster/index.html', context)
 
@@ -242,7 +243,7 @@ class Branches(View):
     parent_id = ""
     identifier = ""
     def sql_branch(self):
-        query = "select id,description from %s where parent_id=%s;"
+        query = "select id as id,description as description from %s where parent_id=%s;"
         print(self.identifier)
         print(self.parent_id)
 
@@ -260,12 +261,26 @@ class Branches(View):
             print(branch_items)
         # return HttpResponse(template.render(context, request))
         return branch_items
+    def get(self, request):
+        branch_items = self.load_branch()
+        branch_dicts = []
+        for item in branch_items:
+            branch_dicts.append({'id': item[0], 'description': item[1]})
 
-# class ChannelBranches(Branches):
-#
-#     parent_id = channel_id
-#     identifier = 'channels'
+        # form = BranchForm()
+        context = {'branch_items': branch_dicts}
 
+        return render(request, 'forecaster/tree_dropdown_list_options.html', context)
+    
+class ChannelBranches(Branches):
+
+    identifier = "channels"
+
+    def get(self, request):
+        channel_id = request.GET.get('channel_id')
+        self.parent_id = channel_id
+
+        return super(ChannelBranches, self).get(request)
 
 class ProductBranches(Branches):
 
@@ -275,12 +290,8 @@ class ProductBranches(Branches):
         product_id = request.GET.get('product_id')
         self.parent_id = product_id
 
-        branch_items = self.load_branch()
-        form = BranchForm()
-        context = {'branch_items': branch_items, 'form': form}
+        return super(ProductBranches, self).get(request)
 
-        return render(request, 'forecaster/tree_dropdown_list_options.html', context)
+        
 
-    def post(self, request):
-        return render
 

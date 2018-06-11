@@ -29,12 +29,36 @@ from .forms import BranchForm
 
 # Create your views here.
 
+
+
+def get_level(product_or_channel):
+    with connections['colplan'].cursor() as cursor:
+        query = """	SELECT "c"."value" FROM "configs" AS "c" WHERE "c"."name" = 'upd_%s_level'"""
+        query = query % product_or_channel
+        cursor.execute(query)
+        level = int(cursor.fetchone()[0])
+
+    return level
+
+def get_parent_level(product_or_channel, id):
+    with connections['colplan'].cursor() as cursor:
+        query = """	SELECT level FROM {0} AS "t" WHERE "t"."id" = '{1}'"""
+        table = product_or_channel + 's'
+        query = query.format(table, id)
+        cursor.execute(query)
+        level = int(cursor.fetchone()[0])
+
+    return level
+
 def index(request):
     # forecast_list = Forecast.objects.order_by('product_id','channel_id')[:5]
     # template = loader.get_template('polls/index.html')
     upd_list = Forecasts.objects.all().order_by('product_id', 'channel_id').distinct('product_id', 'channel_id')
-    form_products = BranchForm(identifier='products')
-    form_channels = BranchForm(identifier='channels')
+    form_products = BranchForm(identifier='products', level=get_level('product'))
+    form_channels = BranchForm(identifier='channels', level=get_level('channel'))
+    print(get_level('channel'))
+    print(get_level('product'))
+
     print(form_products.branch_items)
     context = {'upd_list': upd_list, 'form_products':form_products, "form_channels":form_channels }
     # return HttpResponse(template.render(context, request))
@@ -42,8 +66,6 @@ def index(request):
 
 
 def detail(request, product_id, channel_id):
-    # def detail(request):
-
 
     p_id = product_id
     c_id = channel_id
@@ -238,10 +260,68 @@ class ForecastsDetailsGcharts(ForecasterDetails):
 
         return JsonResponse(context)
 
+class ForecastsDetailsAggregatedGcharts(View):
+    def get(self, request, product_id, channel_id):
+        product_level = get_parent_level('product', product_id)
+        channel_level = get_parent_level('channel', channel_id)
+        product_level_max = get_level('product')
+        channel_level_max = get_level('channel')
+
+        sql_string = """
+            select 	
+                "ud".date,
+                sum("ud".quantity) 
+            from upds_details as "ud" 
+            join (select distinct on (c{5}_id, c{1}_id) c{5}_id max_c, c{1}_id agg_c from view_channels_tree where c{1}_id='4') as "vc" on "vc".max_c="ud".channel_id 
+            join  (select distinct on (p{4}_id, p{0}_id) p{4}_id max_p, p{0}_id agg_p from view_products_tree where p{0}_id='8') as "vp" on "vp".max_p="ud".product_id
+            group by 
+                "vp".agg_p,
+                "vc".agg_c, 
+                "ud".date 
+            order by 
+                "vp".agg_p,
+                "vc".agg_c, 
+                "ud".date;
+        """
+        # {0} = product_level
+        # {1} = channel_level
+        # {2} = product_id
+        # {3} = channel_id
+        # {4} = product_level_max 3
+        # {5} = channel_level_max 2
+
+        # product_level = 2
+        # channel_level = 2
+        # product_id = '13'
+        # channel_id = '4'
+        # product_level_max = 3
+        # channel_level_max = 2
+        sql_string= sql_string.format(product_level, channel_level, product_id, channel_id, product_level_max, channel_level_max)
+        print(sql_string)
+
+        with connections['colplan'].cursor() as cursor:
+            cursor.execute(sql_string)
+
+            branch_items = cursor.fetchall()
+            print(branch_items)
+        # return HttpResponse(template.render(context, request))
+        dates = []
+        values = []
+        for item in branch_items:
+            dates.append(str(item[0]))
+            values.append(item[1])
+        upd_aggregate = dict(zip(dates, values))
+        context = {'Faturamento': upd_aggregate,}
+
+        return JsonResponse(context)
+
 
 class Branches(View):
+    """ Branch loading base class, generic for product or chanel """
+
     parent_id = ""
     identifier = ""
+
     def sql_branch(self):
         query = "select id as id,description as description from %s where parent_id=%s;"
         print(self.identifier)
@@ -261,7 +341,9 @@ class Branches(View):
             print(branch_items)
         # return HttpResponse(template.render(context, request))
         return branch_items
+
     def get(self, request):
+
         branch_items = self.load_branch()
         branch_dicts = []
         for item in branch_items:

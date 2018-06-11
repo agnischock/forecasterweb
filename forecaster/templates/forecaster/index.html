@@ -1,5 +1,5 @@
 {% extends 'adminlte/base.html' %}
-
+{% load static %}
 {% block title %}Forecaster{% endblock %}
 {% block content %}
     <div class="row">
@@ -14,7 +14,14 @@
                 <div class="box-body">
                     <form method="post" id="productForm" load-branch-url="{% url 'forecaster:load_product_branch' %}" novalidate>
                     {% csrf_token %}
+                        <!--<div class="row">-->
+                                <!--{% for list_item in form_products %}-->
+                                        <!--{{ list_item }}-->
+                                <!--{% endfor %}-->
+                        <!--</div>-->
                         <table>
+
+
                             {{ form_products.as_table }}
                         </table>
                     </form>
@@ -44,92 +51,153 @@
     </div>
 
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-    <script>
-
-        function removeOptions(selectbox)
-        {
-            var i;
-            for(i = selectbox.options.length - 1 ; i >= 0 ; i--)
-            {
-                selectbox.remove(i);
-            }
-        }
-
-        $("#id_products_branch_item_level_1").change(function () {
-
-            var url = $("#productForm").attr("load-branch-url");
-            var productId = $(this).val();
-            console.log(productId)
-            $.ajax({
-            url: url,
-            data: {
-                'product_id': productId
-            },
-            success: function (data) {
-                $("#id_products_branch_item_level_2").html(data);
-                var product_selection_level_3 =  document.getElementById("id_products_branch_item_level_3");
-                removeOptions(product_selection_level_3);
-            }
-            });
-        });
-        $("#id_products_branch_item_level_2").change(function () {
-            var url = $("#productForm").attr("load-branch-url");
-            var productId = $(this).val();
-            console.log(productId)
-            $.ajax({
-            url: url,
-            data: {
-                'product_id': productId
-            },
-            success: function (data) {
-                $("#id_products_branch_item_level_3").html(data);
-            }
-            });
-        });
+    <script src={% static "forecaster/selectionboxes.js" %}></script>
 
 
-        $("#id_channels_branch_item_level_1").change(function () {
-            var url = $("#channelForm").attr("load-branch-url");
-            var channelId = $(this).val();
-            console.log(channelId)
-            $.ajax({
-            url: url,
-            data: {
-                'channel_id': channelId
-            },
-            success: function (data) {
-                $("#id_channels_branch_item_level_2").html(data);
-                var channel_selection_level_3 =  document.getElementById("id_channels_branch_item_level_3");
-                removeOptions(channel_selection_level_3);
-            }
-            });
-        });
-        $("#id_channels_branch_item_level_2").change(function () {
-            var url = $("#channelForm").attr("load-branch-url");
-            var channelId = $(this).val();
-            console.log(channelId)
-            $.ajax({
-            url: url,
-            data: {
-                'channel_id': channelId
-            },
-            success: function (data) {
-                $("#id_channels_branch_item_level_3").html(data);
-            }
-            });
-        });
-    </script>
-    <div>
-        {% if upd_list %}
-            <ul>
-                {% for upd in upd_list %}
-                   <li><a href="{% url 'forecaster:detail' upd.product_id  upd.channel_id %}">{{ upd.product_id }}-{{ upd.channel_id }}</a></li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>No forecasts are available.</p>
-        {% endif %}
+    <div class="row">
+        <div class="col-md-3">
 
+            <div class="box box-primary">
+
+                <div class="box-header">
+                    <legend>UPDs(todas)</legend>
+                </div>
+
+                <div class="box-body">
+                    {% if upd_list %}
+                        <ul>
+                            {% for upd in upd_list %}
+                               <li><a href="{% url 'forecaster:detail' upd.product_id  upd.channel_id %}">{{ upd.product_id }}-{{ upd.channel_id }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No forecasts are available.</p>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+
+            <div class="box box-primary">
+
+                <div class="box-header">
+                    <legend>UPDs(seleção)</legend>
+                </div>
+                <li><a href="{% url 'forecaster:gchartsdetailaggregated'  '13' '4' %}">13-4</a></li>
+
+                <div class="box-body">
+
+
+                    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+                    <script type="text/javascript" >
+                        google.charts.load('current', {packages: ['corechart', 'line']});
+                        google.charts.setOnLoadCallback(drawChart);
+
+                        function drawChart() {
+                            console.log('Bom dia')
+                            console.log("gchartsdetailaggregaed/" + "{{ upd|safe}}")
+                            var product_id = $("#id_products_branch_item_level_3").val()
+                            var channel_id = $("#id_channels_branch_item_level_2").val()
+                            var jsonData = $.ajax({
+                              url: "/forecaster/gchartsdetailaggregated/" + product_id +"-"+channel_id,
+                              dataType: "json",
+                              async: false
+                              }).responseText;
+
+                            var data = new google.visualization.DataTable();
+
+                            var parsed = JSON.parse(jsonData);
+
+                            //Get a list of dates
+                            var dates = []
+                            for (var model in parsed){
+                                var timeseries = parsed[model]
+                                for (var point in timeseries){
+                                    var date = point;
+                                    if (!(date in dates)){
+                                        dates.push(date);
+                                    }
+                                }
+                            }
+                            dates = dates.sort();
+                            console.log(dates);
+
+                            data.addColumn('date', 'Data');
+
+                            //Get a list of models
+                            var models = [];
+                            for (var model in parsed){
+                                if (!(model in models)){
+                                    models.push(model);
+                                }
+                            }
+                            models = models.sort();
+                            console.log(models);
+
+                            for (var model in models){
+                                data.addColumn('number', models[model]);
+                            }
+
+                            //Iterate through dates and models, getting every point for that date and model
+                            //If there is no point for a given date or models, put a '__' instead
+                            for (var date in dates){
+                                var datestring = dates[date]
+                                var parts = datestring.split('-');
+                                // Please pay attention to the month (parts[1]); JavaScript counts months from 0:
+                                // January - 0, February - 1, etc.
+                                var mydate = new Date(parts[0], parts[1] - 1, parts[2]);
+                                var point = [mydate]
+                                //console.log(point)
+                                for (var model in models){
+                                    //console.log('oi')
+
+                                    var thisModel = parsed[models[model]]
+                                    console.log(thisModel)
+                                    console.log()
+
+                                    if (thisModel.hasOwnProperty(datestring)){
+                                        //console.log(thisModel[datestring]);
+                                        point.push(thisModel[datestring]);
+                                    }else{
+                                        point.push(null);
+                                    }
+                                }
+                                console.log(point)
+                                data.addRow(point);
+                            }
+
+
+
+                            console.log(data);
+                            var options = {
+                              title: 'Forecasts',
+                              legend: { position: 'right' }
+                            };
+
+                            var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+                            console.log(chart);
+                            chart.draw(data, options);
+                        }
+                    </script>
+
+
+
+
+                    {% if upd_list %}
+                        <ul>
+                            {% for upd in upd_list %}
+                               <li><a href="{% url 'forecaster:detail' upd.product_id  upd.channel_id %}">{{ upd.product_id }}-{{ upd.channel_id }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No forecasts are available.</p>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
     </div>
+
 {% endblock %}
 

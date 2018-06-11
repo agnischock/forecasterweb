@@ -31,18 +31,18 @@ class BranchForm(forms.Form):
     # branch_item_level_4 = forms.ChoiceField(choices=[])
     identifier = ''
 
-    def __init__(self, identifier='products', *args, **kwargs):
+    def __init__(self, identifier='products', level=4, *args, **kwargs):
         self.identifier = identifier
         self.branch_items = load_branch(self.identifier)
-
+        print('que legal %s' % level)
         super().__init__(*args, **kwargs)
         self.fields[self.identifier+'_branch_item_level_1'] = forms.ChoiceField(choices=[])
         self.fields[self.identifier+'_branch_item_level_1'].choices = [("",'------')] + self.branch_items
-        self.fields[self.identifier + '_branch_item_level_2'] = forms.ChoiceField(choices=[])
-        self.fields[self.identifier + '_branch_item_level_3'] = forms.ChoiceField(choices=[])
-        self.fields[self.identifier + '_branch_item_level_4'] = forms.ChoiceField(choices=[])
-        # self.identifier = 'teste'
-
-        print(self.identifier)
+        for i in range(2, level+1):
+            level_name = '_branch_item_level_%s' % i
+            self.fields[self.identifier + level_name] = forms.ChoiceField(choices=[])
+        # self.fields[self.identifier + '_branch_item_level_2'] = forms.ChoiceField(choices=[])
+        # self.fields[self.identifier + '_branch_item_level_3'] = forms.ChoiceField(choices=[])
+        # self.fields[self.identifier + '_branch_item_level_4'] = forms.ChoiceField(choices=[])
 
 

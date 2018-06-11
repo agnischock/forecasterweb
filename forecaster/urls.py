@@ -11,6 +11,7 @@ urlpatterns = [
     path('gchartsdetail/<int:product_id>-<int:channel_id>/', views.ForecastsDetailsGcharts.as_view(), name='gchartsdetail'),
     # path('upds/channel_branch', views.ChannelBranches.as_view(), name='load_channel_branch'),
     path('upds/product_branch', views.ProductBranches.as_view(), name='load_product_branch'),
-    path('upds/channel_branch', views.ChannelBranches.as_view(), name='load_channel_branch')
+    path('upds/channel_branch', views.ChannelBranches.as_view(), name='load_channel_branch'),
+    path('gchartsdetail_agg/<int:product_id>-<int:channel_id>/', views.ForecastsDetailsAggregatedGcharts.as_view(), name='gchartsdetailaggregated'),
 
 ]
